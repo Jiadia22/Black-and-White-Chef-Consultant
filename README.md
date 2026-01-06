@@ -55,6 +55,6 @@
 1. **MongoDB 실행**: 로컬 환경에서 MongoDB가 작동 중인지 확인합니다.
 2. **필수 라이브러리 설치**:
    pip install fastapi uvicorn pymongo openai python-dotenv streamlit requests
-3. 데이터 삽입: python setup.py
-  Backend(FastAPI) 서버 실행: uvicorn main:app --reload
-  Frontend(Streamlit) 실행: streamlit run app3.py
+3. 데이터 삽입: python setup.py,
+  Backend(FastAPI) 서버 실행: uvicorn main:app --reload,
+  Frontend(Streamlit) 실행: streamlit run app3.py,
