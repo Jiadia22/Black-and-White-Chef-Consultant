@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+pymongo
+openai
+streamlit
+streamlit-extras
+requests

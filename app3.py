@@ -1,0 +1,124 @@
+import streamlit as st
+from pymongo import MongoClient
+import random
+import requests
+from streamlit_extras.let_it_rain import rain
+
+# 페이지 설정
+st.set_page_config(page_title="AI 흑백요리사 맛집", page_icon="👨‍🍳")
+
+# DB 연결
+client = MongoClient('mongodb://localhost:27017/')
+db = client['chef_db']
+
+st.title("👨‍🍳 AI 흑백요리사 컨설턴트")
+st.write("셰프님들의 식당 중 오늘 당신에게 완벽한 한 끼를 골라드려요.")
+
+st.markdown("---")
+
+# 1. 심사위원 및 장르 선택
+judge = st.radio("전담 심사위원 선택", ["안성재", "백종원"], horizontal=True)
+genres = ["전체"] + list(db.restaurants.distinct("장르"))
+selected_genre = st.selectbox("어떤 종류의 음식을 좋아하시나요?", genres, key="random_select")
+
+# 2. 추천 버튼
+btn_recommend = st.button("🍴 바로 추천 및 심사평 듣기", type="primary")
+
+if btn_recommend:
+    # (1) 식당 랜덤 추출
+    query = {}
+    if selected_genre != "전체":
+        query["장르"] = selected_genre
+    
+    results = list(db.restaurants.find(query))
+    
+    if results:
+        pick = random.choice(results)
+        # 장르별 이모지 사전 (여기서 이모지를 마음대로 바꿀 수 있어요!)
+        emoji_map = {
+            "한식": "🍚",
+            "중식": "🥟",
+            "일식": "🍣",
+            "양식": "🍕",
+            "분식": "🍢",
+            "고기": "🍖",
+            "디저트": "🍰",
+            "세계음식": "🌮",
+            "퓨전": "🌀",
+        }
+        
+        # 식당 장르에 맞는 이모지 찾기 (없으면 기본값 👨‍🍳)
+        food_emoji = emoji_map.get(pick['장르'], "👨‍🍳")
+            
+        # 음식 비 내리기
+        rain(
+            emoji=food_emoji,
+            font_size=54,
+            falling_speed=5,
+            animation_length="1s",
+        )
+        # ---------------------------------------------------------
+        
+        # 🎨 색상 테마 설정 (모던 다크)
+        bg_color = "#2b2b2b"      # 어두운 회색 배경
+        border_color = "#555555"  # 차분한 회색 테두리
+        text_color = "#ffffff"    # 흰색 글자
+
+        # 디자인 박스 HTML 만들기
+        box_html = f"""
+        <div style="
+            background-color: {bg_color}; 
+            border: 2px solid {border_color}; 
+            border-radius: 12px; 
+            padding: 25px;
+            margin-bottom: 20px;
+            color: {text_color};
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 살짝 그림자 추가 */
+        ">
+            <h3 style="color: {text_color}; margin-top: 0; border-bottom: 1px solid {border_color}; padding-bottom: 15px;">
+                👨‍🍳 오늘의 추천: <span style="font-weight: 900;">{pick['식당명']}</span>
+            </h3>
+            <p style="font-size: 1.1em; margin-top: 15px; margin-bottom: 0;">
+                <span style="color: #aaaaaa;">🧑‍🍳 셰프:</span> {pick['셰프']}   |   
+                <span style="color: #aaaaaa;">📂 장르:</span> {pick['장르']}
+            </p>
+        </div>
+        """
+        
+        # HTML 코드를 화면에 그리기
+        st.markdown(box_html, unsafe_allow_html=True)
+ 
+   
+
+        if judge == "백종원":
+            loading_msg = "🤔 백종원 대표님이 메뉴판을 스캔하는 중입니다..."
+        else:
+            loading_msg = "🤨 안성재 심사위원이 익힘 정도를 상상하는 중입니다..."
+
+        # (3) ★중요: 즉시 AI 심사평 가져오기★
+        with st.spinner(loading_msg):
+            try:
+                # FastAPI 서버로 요청 (식당 이름과 심사위원을 전달)
+                # 팁: FastAPI 쪽에 해당 식당에 대한 멘트를 요청하는 파라미터를 맞춰야 합니다.
+                res = requests.get(f"http://127.0.0.1:8000/ai-recommend?user_msg={pick['식당명']}&judge={judge}&genre={pick['장르']}")
+                data = res.json()
+                
+                with st.chat_message("assistant", avatar="👨‍🍳"):
+                    st.write(f"**[{judge} 심사위원의 분석 결과]**")
+                    # FastAPI에서 넘겨주는 키값(예: 'comment')에 맞춰 출력
+                    st.write(data.get('ai_comment', data.get('description', "맛 평가를 불러올 수 없습니다.")))
+            except Exception as e:
+                st.error(f"심사평을 가져오는데 실패했습니다. FastAPI 서버를 확인해주세요! (오류: {e})")
+            
+        # (4) 지도 버튼
+        map_col1, map_col2 = st.columns(2)
+        with map_col1:
+            st.link_button("🦁 카카오맵 보기", f"https://map.kakao.com/?q={pick['식당명']}", use_container_width=True)
+        with map_col2:
+            st.link_button("🌐 구글 지도 검색", f"https://www.google.com/maps/search/{pick['식당명']}", use_container_width=True)
+
+    else:
+        st.warning("조건에 맞는 식당이 없습니다!")
+
+st.markdown("---")
+st.caption("Developed with FastAPI + MongoDB + Streamlit + OpenAI")
