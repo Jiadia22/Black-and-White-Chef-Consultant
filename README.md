@@ -57,4 +57,4 @@
    pip install fastapi uvicorn pymongo openai python-dotenv streamlit requests
 3. 데이터 삽입: python setup.py,
   Backend(FastAPI) 서버 실행: uvicorn main:app --reload,
-  Frontend(Streamlit) 실행: streamlit run app3.py,
+  Frontend(Streamlit) 실행: streamlit run app.py
