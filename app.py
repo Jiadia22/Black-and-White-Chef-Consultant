@@ -4,6 +4,8 @@ import random
 import requests
 from streamlit_extras.let_it_rain import rain
 
+from styles import get_restaurant_box_html
+
 # 페이지 설정
 st.set_page_config(page_title="AI 흑백요리사 맛집", page_icon="👨‍🍳")
 
@@ -57,37 +59,13 @@ if btn_recommend:
             falling_speed=5,
             animation_length="1s",
         )
-        # ---------------------------------------------------------
-        
-        # 🎨 색상 테마 설정 (모던 다크)
-        bg_color = "#2b2b2b"      # 어두운 회색 배경
-        border_color = "#555555"  # 차분한 회색 테두리
-        text_color = "#ffffff"    # 흰색 글자
 
-        # 디자인 박스 HTML 만들기
-        box_html = f"""
-        <div style="
-            background-color: {bg_color}; 
-            border: 2px solid {border_color}; 
-            border-radius: 12px; 
-            padding: 25px;
-            margin-bottom: 20px;
-            color: {text_color};
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 살짝 그림자 추가 */
-        ">
-            <h3 style="color: {text_color}; margin-top: 0; border-bottom: 1px solid {border_color}; padding-bottom: 15px;">
-                👨‍🍳 오늘의 추천: <span style="font-weight: 900;">{pick['식당명']}</span>
-            </h3>
-            <p style="font-size: 1.1em; margin-top: 15px; margin-bottom: 0;">
-                <span style="color: #aaaaaa;">🧑‍🍳 셰프:</span> {pick['셰프']}   |   
-                <span style="color: #aaaaaa;">📂 장르:</span> {pick['장르']}
-            </p>
-        </div>
-        """
+                
+        # 함수를 불러서 HTML 완성! (괄호 안에 pick 데이터를 쏙 넣어줍니다)
+        box_html = get_restaurant_box_html(pick['식당명'], pick['셰프'], pick['장르'])
         
-        # HTML 코드를 화면에 그리기
         st.markdown(box_html, unsafe_allow_html=True)
- 
+       
    
 
         if judge == "백종원":
@@ -121,4 +99,4 @@ if btn_recommend:
         st.warning("조건에 맞는 식당이 없습니다!")
 
 st.markdown("---")
-st.caption("Developed with FastAPI + MongoDB + Streamlit + OpenAI")
+st.caption("Developed with FastAPI + MongoDB + Streamlit + OpenAI + Perplexity AI")
