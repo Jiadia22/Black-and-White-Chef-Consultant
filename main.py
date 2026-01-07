@@ -2,16 +2,19 @@ from fastapi import FastAPI
 from pymongo import MongoClient
 from openai import OpenAI
 import random
-import my_key
 import re
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 # 말하기 담당
-client_ai = OpenAI(api_key=my_key.OPENAI_API_KEY)
+client_ai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # 검색 담당
 client_pplx = OpenAI(
-    api_key=my_key.PPLX_API_KEY, 
+    api_key=os.getenv("PPLX_API_KEY"), 
     base_url="https://api.perplexity.ai")
 
 db_client = MongoClient('mongodb://localhost:27017/')
